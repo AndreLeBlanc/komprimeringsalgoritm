@@ -34,6 +34,12 @@ decompress = undefined
 encrypt :: B.ByteString -> String -> B.ByteString
 encrypt = undefined
 
+{-findprime 
+	PRE: TRUE
+	POST: an industrial grade prime number to be used for encryption by encrypt.
+-}
+findprime :: Int
+
 {- decrypt
 	PRE: True
 	Post: If the password is correct the binary file decrypted. Otherwise the same binary file.
