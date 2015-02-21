@@ -1,4 +1,4 @@
-{-foor binary strings-}
+{-for binary strings-}
 import Data.Binary
 import qualified Data.ByteString as B
 
