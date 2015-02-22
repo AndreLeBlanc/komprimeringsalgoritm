@@ -5,6 +5,8 @@ import qualified Data.ByteString as B
 data word = (String, Int)
 data library = [word]
 
+hejsan
+
 {- 	compress String
 	PRE: TRUE
 	POST: The string compressed and turned into a bytestring.
