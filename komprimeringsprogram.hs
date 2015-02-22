@@ -5,7 +5,6 @@ import qualified Data.ByteString as B
 data word = (String, Int)
 data library = [word]
 
-hejsan
 
 {- 	compress String
 	PRE: TRUE
@@ -41,7 +40,7 @@ encrypt = undefined
 	POST: an industrial grade prime number to be used for encryption by encrypt.
 -}
 findprime :: Int
-
+findprime = undefined
 {- decrypt
 	PRE: True
 	Post: If the password is correct the binary file decrypted. Otherwise the same binary file.
