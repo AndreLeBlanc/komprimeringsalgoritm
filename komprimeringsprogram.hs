@@ -47,3 +47,5 @@ findprime = undefined
 -}
 decrypt :: B.ByteString -> B.ByteString
 decrypt = undefined
+
+{- Hejsan -}
