@@ -1,18 +1,33 @@
 {-for binary strings-}
 import Data.Binary
-import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as B
+import System.IO
+import PandP 
 
-data word = (String, Int)
-data library = [word]
+type Mword = (String, Int)
+type Library = [Mword]
 
+
+main = do
+  contents <- readFile "testtxt.txt"
+  let c = B.concat (compress_aux (quicksort (wordCount (words contents))))
+  B.writeFile "comp.txt" c
+  
+{--hah :: [B.ByteString] -> B.ByteString  
+hah [] = undefined
+hah lista =
+  B.head lista B.concat hah B.tail lista--}
 
 {- 	compress String
 	PRE: TRUE
 	POST: The string compressed and turned into a bytestring.
 -}
 compress :: String -> B.ByteString 
-compress text = undefined
+compress text = B.pack text
 
+compress_aux :: Library -> [B.ByteString]
+compress_aux [] = []
+compress_aux (h:t) = compress (fst h) : compress_aux t  
 
 {- 	Buildlibrary
 	PRE: TRUE
@@ -21,9 +36,60 @@ compress text = undefined
 buildlibrary :: B.ByteString -> String -> B.ByteString
 buildlibrary = undefined
 
+
+
+wordCount :: [String] -> Library
+wordCount [] = []
+wordCount document = 
+  let 
+    {- wordCountAux document emptylist
+       PURPOSE: Checks if a specific word in a document has already been counted.
+       PRE: The second argument is an empty list
+       POST: Returns a tally of all the words in the document.
+       EXAMPLES:
+
+        wordCountAux ["hello", "hey", "hello", "goodbye"] [] = [("hello",2), ("hey",1), ("goodbye",1)]
+        wordCountAux [] [] = []
+    -}
+    wordCountAux [] _ = []
+    wordCountAux (h:t) wordsUsed | elem h wordsUsed = wordCountAux t wordsUsed
+                                 | otherwise        = (aux h t 1):wordCountAux t (h:wordsUsed)
+       
+    {- aux word document counter
+       PURPOSE: Counts how many times a specific word occurs in a document.
+       PRE: True
+       POST: Returns a tuple with the word and its number of occurances as its elements.
+       EXAMPLES:
+
+        aux ["hello", "hey", "hello", "goodbye"] "hello" 0 = ("hello", 2) 
+    -}
+    aux word [] c = (word, c)
+    aux word (h:t) c | word == h = aux word t (c+1)
+                     | otherwise = aux word t c     
+       
+  in 
+    wordCountAux document []
+
+
+partition _ [] = ([] , [])
+partition p ( x : xs ) =
+	let
+		( lows , highs ) = partition p xs
+	in
+		if (snd x) > p
+			then ( x : lows , highs )
+			else ( lows , x : highs )
+
+quicksort [] = []
+quicksort ( x : xs ) =
+	let
+		( lows , highs ) = partition (snd x) xs
+	in
+		quicksort lows ++ x : quicksort highs
+
 {- decomress
 	PRE: TRUE
-	POST: The file decyptet from a binary file to a String
+	POST: The file decrypted from a binary file to a String
 -}
 decompress :: B.ByteString -> String
 decompress = undefined
