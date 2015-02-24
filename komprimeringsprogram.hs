@@ -2,38 +2,33 @@
 import Data.Binary
 import qualified Data.ByteString.Char8 as B
 import System.IO
-import PandP 
 
 type Mword = (String, Int)
 type Library = [Mword]
 
 
 main = do
-  contents <- readFile "testtxt.txt"
-  let c = B.concat (compress_aux (quicksort (wordCount (words contents))))
-  B.writeFile "comp.txt" c
+  putStr "Enter file name "
+  name <- getLine
+  contents <- readFile name
+  let c = unwords (compress (quicksort (wordCount (words contents))))
+  writeFile (name ++ "comp.txt") c
   
-{--hah :: [B.ByteString] -> B.ByteString  
-hah [] = undefined
-hah lista =
-  B.head lista B.concat hah B.tail lista--}
 
 {- 	compress String
 	PRE: TRUE
 	POST: The string compressed and turned into a bytestring.
 -}
-compress :: String -> B.ByteString 
-compress text = B.pack text
+--compress :: String -> B.ByteString 
+compress [] = []
+compress (h:t) = fst h : compress t
 
-compress_aux :: Library -> [B.ByteString]
-compress_aux [] = []
-compress_aux (h:t) = compress (fst h) : compress_aux t  
 
 {- 	Buildlibrary
 	PRE: TRUE
 	POST: an extention of the standard library for the specific file
 -}
-buildlibrary :: B.ByteString -> String -> B.ByteString
+--buildlibrary :: B.ByteString -> String -> B.ByteString
 buildlibrary = undefined
 
 
@@ -91,27 +86,27 @@ quicksort ( x : xs ) =
 	PRE: TRUE
 	POST: The file decrypted from a binary file to a String
 -}
-decompress :: B.ByteString -> String
+--decompress :: B.ByteString -> String
 decompress = undefined
 
 {-	encrypt
 	PRE: an encypted file
 	POST: The file encrypted with the RSA algorithm
 -}
-encrypt :: B.ByteString -> String -> B.ByteString
+--encrypt :: B.ByteString -> String -> B.ByteString
 encrypt = undefined
 
 {-findprime 
 	PRE: TRUE
 	POST: an industrial grade prime number to be used for encryption by encrypt.
 -}
-findprime :: Int
+--findprime :: Int
 findprime = undefined
 {- decrypt
 	PRE: True
 	Post: If the password is correct the binary file decrypted. Otherwise the same binary file.
 -}
-decrypt :: B.ByteString -> B.ByteString
+--decrypt :: B.ByteString -> B.ByteString
 decrypt = undefined
 
 {- Hejsan -}
