@@ -2,27 +2,54 @@
 import Data.Binary
 import qualified Data.ByteString.Char8 as B
 import System.IO
+import Bib
 
 type Mword = (String, Int)
 type Library = [Mword]
 
 
-main = do
-  putStr "Enter file name "
+compressFile = do
+  putStr "Enter uncompressed file name "
   name <- getLine
   contents <- readFile name
-  let c = unwords (compress (quicksort (wordCount (words contents))))
-  writeFile (name ++ "comp.txt") c
+  let c = intToStr (compress2 (quicksort (tempFunc (words contents))) Bib.bib) 
+  writeFile (take ((length name) - 3) name ++ "comp.txt") c
   
 
-{- 	compress String
-	PRE: TRUE
-	POST: The string compressed and turned into a bytestring.
--}
---compress :: String -> B.ByteString 
+deCompressFile = do
+  putStr "Enter compressed file name "
+  name <- getLine
+  contents <- readFile name
+  let c = unwords (decompress2 (strToInt (words contents)) Bib.bib)
+  writeFile (take ((length name ) - 8) name ++ "uncomp.txt") c
+
+intToStr [] = ""
+intToStr (h:t) = show h ++ " " ++ intToStr t
+
+strToInt [] = []
+strToInt (h:t) = (read h :: Integer) : strToInt t
+
 compress [] = []
 compress (h:t) = fst h : compress t
 
+compress2 [] _ = []
+compress2 (h:t) bib =
+  let
+    compress_aux (h:t) (x:xs) | (fst h) == fst x = snd x 
+                              | otherwise = compress_aux (h:t) xs
+
+  in
+    compress_aux (h:t) bib : compress2 t bib    
+
+
+decompress2 [] _ = []
+decompress2 (h:t) bib =
+  let
+    decompress_aux (h:t) (x:xs) | h == snd x = fst x 
+                              | otherwise = decompress_aux (h:t) xs
+
+  in
+    decompress_aux (h:t) bib : decompress2 t bib    
 
 {- 	Buildlibrary
 	PRE: TRUE
@@ -31,6 +58,8 @@ compress (h:t) = fst h : compress t
 --buildlibrary :: B.ByteString -> String -> B.ByteString
 buildlibrary = undefined
 
+tempFunc [] = []
+tempFunc (h:t) = (h,"temp") : tempFunc t
 
 
 wordCount :: [String] -> Library
