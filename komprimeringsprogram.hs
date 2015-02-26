@@ -1,141 +1,81 @@
 {-for binary strings-}
+{-# LANGUAGE LambdaCase #-}
 import Data.Binary
 import qualified Data.ByteString.Char8 as B
 import System.IO
 import Bib
+import Data.Char
+import System.Directory
+data Funct = Compress | Decompress | Encrypt | Decrypt deriving Eq
 
-type Mword = (String, Int)
-type Library = [Mword]
-
-
+compressFile :: IO ()
 compressFile = do
   putStr "Enter uncompressed file name "
   name <- getLine
   contents <- readFile name
-  let c = intToStr (compress2 (quicksort $ tempFunc (words contents)) Bib.bib) 
-  writeFile (take ((length name) - 3) name ++ "comp.txt") c
-  
-
+  let filePath = makeName name Compress
+  if filePath == "error" then putStr "Error, the file can't be compressed "
+  	else
+  		writeFile filePath $ compress contents
+  where
+	  compress :: String -> String
+	  compress compressMe = let a = strToInt compressMe
+						in intToStr a
+	 
+deCompressFile :: IO ()
 deCompressFile = do
   putStr "Enter compressed file name "
   name <- getLine
   contents <- readFile name
-  let c = unwords $ decompress2 (strToInt $ words contents) Bib.bib
-  writeFile (take ((length name ) - 8) name ++ "uncomp.txt") c
+  let filePath = makeName name Decompress
+  if filePath == "error" then putStr "Error, the file needs to be compressed to be decompressed "
+  	 else
+  		writeFile filePath $ deCompress contents
+  where
+	   deCompress :: String -> String
+	   deCompress deCompressMe = let a = strToInt deCompressMe
+						in intToStr a
 
-intToStr :: [Integer] -> String
-intToStr a = concat $ map show a
+encrypt :: IO ()
+encrypt = do
+  putStr "Enter unencrypted file name "
+  name <- getLine
+  contents <- readFile name
+  let filePath = makeName name Encrypt
+  writeFile filePath $ crypt contents
+  where
+	  crypt :: String -> String
+	  crypt cryptMe = let a = strToInt cryptMe
+						in intToStr a
 
-strToInt :: [String] -> [Integer]
-strToInt a = concat $ map read a
+decrypt :: IO ()
+decrypt = do
+  putStr "Enter unencrypted file name "
+  name <- getLine
+  contents <- readFile name
+  let filePath = makeName name Decrypt
+  if filePath == "error" then putStr "Error, the file needs to be encrypted to be decrypted "
+  	else
+  		writeFile filePath $ uncrypt contents
+  where
+	  uncrypt :: String -> String
+	  uncrypt uncryptMe = let a = strToInt uncryptMe
+						in intToStr a
 
-compress [] = []
-compress (h:t) = fst h : compress t
+makeName :: String -> Funct -> String
+makeName name lastName
+	| unEncrypted && notCompressed = (take (length name - 4) name) ++ "comp.txt"
+	| unEncrypted && not notCompressed && lastName == Decrypt = (take (length name - 8) name) ++ ".txt"
+	| unEncrypted && not notCompressed && lastName == Encrypt = (take (length name - 6) name) ++ ".crypt"
+	| not unEncrypted = (take (length name - 9) name) ++ ".txt"
+	| otherwise = "error" 
+	where
+		notCompressed = (take (length name - 8) name) /= "comp.txt"
+		unEncrypted = (take (length name - 9) name) /= "crypt.txt"
 
-compress2 [] _ = []
-compress2 (h:t) bib =
-  let
-    compress_aux (h:t) (x:xs) | (fst h) == fst x = snd x 
-                              | otherwise = compress_aux (h:t) xs
+intToStr :: [Int] -> String
+intToStr a = map chr a
 
-  in
-    compress_aux (h:t) bib : compress2 t bib    
+strToInt :: String -> [Int]
+strToInt a = map fromEnum a
 
-
-decompress2 [] _ = []
-decompress2 (h:t) bib =
-  let
-    decompress_aux (h:t) (x:xs) | h == snd x = fst x 
-                              | otherwise = decompress_aux (h:t) xs
-
-  in
-    decompress_aux (h:t) bib : decompress2 t bib    
-
-{- 	Buildlibrary
-	PRE: TRUE
-	POST: an extention of the standard library for the specific file
--}
---buildlibrary :: B.ByteString -> String -> B.ByteString
-buildlibrary = undefined
-
-tempFunc [] = []
-tempFunc (h:t) = (h,"temp") : tempFunc t
-
-
-wordCount :: [String] -> Library
-wordCount [] = []
-wordCount document = 
-  let 
-    {- wordCountAux document emptylist
-       PURPOSE: Checks if a specific word in a document has already been counted.
-       PRE: The second argument is an empty list
-       POST: Returns a tally of all the words in the document.
-       EXAMPLES:
-
-        wordCountAux ["hello", "hey", "hello", "goodbye"] [] = [("hello",2), ("hey",1), ("goodbye",1)]
-        wordCountAux [] [] = []
-    -}
-    wordCountAux [] _ = []
-    wordCountAux (h:t) wordsUsed | elem h wordsUsed = wordCountAux t wordsUsed
-                                 | otherwise        = (aux h t 1):wordCountAux t (h:wordsUsed)
-       
-    {- aux word document counter
-       PURPOSE: Counts how many times a specific word occurs in a document.
-       PRE: True
-       POST: Returns a tuple with the word and its number of occurances as its elements.
-       EXAMPLES:
-
-        aux ["hello", "hey", "hello", "goodbye"] "hello" 0 = ("hello", 2) 
-    -}
-    aux word [] c = (word, c)
-    aux word (h:t) c | word == h = aux word t (c+1)
-                     | otherwise = aux word t c     
-       
-  in 
-    wordCountAux document []
-
-
-partition _ [] = ([] , [])
-partition p ( x : xs ) =
-	let
-		( lows , highs ) = partition p xs
-	in
-		if (snd x) > p
-			then ( x : lows , highs )
-			else ( lows , x : highs )
-
-quicksort [] = []
-quicksort ( x : xs ) =
-	let
-		( lows , highs ) = partition (snd x) xs
-	in
-		quicksort lows ++ x : quicksort highs
-
-{- decomress
-	PRE: TRUE
-	POST: The file decrypted from a binary file to a String
--}
---decompress :: B.ByteString -> String
-decompress = undefined
-
-{-	encrypt
-	PRE: an encypted file
-	POST: The file encrypted with the RSA algorithm
--}
---encrypt :: B.ByteString -> String -> B.ByteString
-encrypt = undefined
-
-{-findprime 
-	PRE: TRUE
-	POST: an industrial grade prime number to be used for encryption by encrypt.
--}
---findprime :: Int
-findprime = undefined
-{- decrypt
-	PRE: True
-	Post: If the password is correct the binary file decrypted. Otherwise the same binary file.
--}
---decrypt :: B.ByteString -> B.ByteString
-decrypt = undefined
-
-{- Hejsan -}
