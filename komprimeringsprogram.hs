@@ -12,7 +12,7 @@ compressFile = do
   putStr "Enter uncompressed file name "
   name <- getLine
   contents <- readFile name
-  let c = intToStr (compress2 (quicksort (tempFunc (words contents))) Bib.bib) 
+  let c = intToStr (compress2 (quicksort $ tempFunc (words contents)) Bib.bib) 
   writeFile (take ((length name) - 3) name ++ "comp.txt") c
   
 
@@ -20,14 +20,14 @@ deCompressFile = do
   putStr "Enter compressed file name "
   name <- getLine
   contents <- readFile name
-  let c = unwords (decompress2 (strToInt (words contents)) Bib.bib)
+  let c = unwords $ decompress2 (strToInt $ words contents) Bib.bib
   writeFile (take ((length name ) - 8) name ++ "uncomp.txt") c
 
-intToStr [] = ""
-intToStr (h:t) = show h ++ " " ++ intToStr t
+intToStr :: [Integer] -> String
+intToStr a = concat $ map show a
 
-strToInt [] = []
-strToInt (h:t) = (read h :: Integer) : strToInt t
+strToInt :: [String] -> [Integer]
+strToInt a = concat $ map read a
 
 compress [] = []
 compress (h:t) = fst h : compress t
