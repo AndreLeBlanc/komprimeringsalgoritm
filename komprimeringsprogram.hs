@@ -33,9 +33,9 @@ deCompressFile = do
   if filePath == "error" then putStr "Error, the file needs to be compressed to be decompressed "
      else
         writeFile filePath (deCompress contents)
-
-deCompress :: String -> String
-deCompress compressMe = intToStr $ lzdecomp $ strToInt compressMe
+  where
+    deCompress :: String -> String
+    deCompress compressMe = intToStr $ lzdecomp $ strToInt compressMe
 
 
 encrypt :: IO ()
@@ -66,14 +66,20 @@ decrypt = do
 
 makeName :: String -> Funct -> String
 makeName name lastName
-	| unEncrypted && not compressed = (take (length name - 4) name) ++ "comp.txt"
-	| unEncrypted && compressed && lastName == Decrypt = (take (length name - 8) name) ++ ".txt"
-	| unEncrypted && compressed && lastName == Encrypt = (take (length name - 6) name) ++ ".crypt"
-	| unEncrypted = (take (length name - 8) name) ++ ".txt"
+	| unEncrypted && not compressed = (newName 4) ++ "comp.txt"
+	| unEncrypted && compressed && lastName == Decrypt = (newName 9) ++ ".txt"
+	| unEncrypted && compressed && lastName == Encrypt = (newName 4) ++ "crypt.txt"
+	| unEncrypted = (newName 8) ++ ".txt"
 	| otherwise = "error" 
 	where
-		compressed = (drop (length name - 8) name) == "comp.txt"
-		unEncrypted = (drop (length name - 9) name) /= "crypt.txt"
+    compressed :: Bool 
+    compressed = (drop (length name - 8) name) == "comp.txt"
+    
+    unEncrypted :: Bool
+    unEncrypted = (drop (length name - 9) name) /= "crypt.txt"
+    
+    newName :: Int -> String
+    newName len = take (length name - len) name 
 
 intToStr :: [Int] -> String
 intToStr a = map chr a
@@ -81,14 +87,14 @@ intToStr a = map chr a
 strToInt :: String -> [Int]
 strToInt [] = []
 strToInt (x:xs)
-  | length xs >= 2 && dou /= 1000 = dou:(strToInt xs)
-  | length xs >= 3 && trio /= 1000 = trio:(strToInt xs)
-  | length xs >= 5 && penta /= 1000 = penta:(strToInt xs)
+  | length xs >= 2 && dou /= 1000 = dou:(strToInt (drop 2 xs))
+  | length xs >= 3 && trio /= 1000 = trio:(strToInt (drop 3 xs))
+  | length xs >= 5 && penta /= 1000 = penta:(strToInt (drop 5 xs))
   | otherwise = [fromEnum x] ++ (strToInt xs)
   where
-    dou = if [x] == head ["\\"] then asci (take 2 xs) else 1000
-    trio = if [x] == head ["\\"] then asci (take 3 xs) else 1000
-    penta = if [x] == head ["\\"] then asci (take 5 xs) else 1000
+    dou = if [x] == "\\" then asci (take 2 xs) else 1000
+    trio = if [x] == "\\" then asci (take 3 xs) else 1000
+    penta = if [x] == "\\" then asci (take 5 xs) else 1000
 
 asci :: String -> Int
 asci "DEL" = 127
