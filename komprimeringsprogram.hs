@@ -33,9 +33,10 @@ deCompressFile = do
   if filePath == "error" then putStr "Error, the file needs to be compressed to be decompressed "
      else
         writeFile filePath (deCompress contents)
-   	 where
-	 	deCompress :: String -> String
-		deCompress compressMe =  intToStr $ lzdecomp $ strToInt compressMe
+
+deCompress :: String -> String
+deCompress compressMe = intToStr $ lzdecomp $ strToInt compressMe
+
 
 encrypt :: IO ()
 encrypt = do
@@ -63,12 +64,6 @@ decrypt = do
 	  uncrypt uncryptMe = let a = dehash $ strToInt uncryptMe
 						in intToStr a
 
-    {-if exists then go 1 f else f
-    where
-        go suffix f = do
-            exists <- doesFileExist (f ++ show suffix)
-            if exists then go (suffix + 1) f else (f ++ show suffix)
--}
 makeName :: String -> Funct -> String
 makeName name lastName
 	| unEncrypted && not compressed = (take (length name - 4) name) ++ "comp.txt"
@@ -84,5 +79,52 @@ intToStr :: [Int] -> String
 intToStr a = map chr a
 
 strToInt :: String -> [Int]
-strToInt a = map fromEnum a
+strToInt [] = []
+strToInt (x:xs)
+  | length xs >= 2 && dou /= 1000 = dou:(strToInt xs)
+  | length xs >= 3 && trio /= 1000 = trio:(strToInt xs)
+  | length xs >= 5 && penta /= 1000 = penta:(strToInt xs)
+  | otherwise = [fromEnum x] ++ (strToInt xs)
+  where
+    dou = if [x] == head ["\\"] then asci (take 2 xs) else 1000
+    trio = if [x] == head ["\\"] then asci (take 3 xs) else 1000
+    penta = if [x] == head ["\\"] then asci (take 5 xs) else 1000
+
+asci :: String -> Int
+asci "DEL" = 127
+asci "NUL" = 0
+asci "SOH" = 1
+asci "STX" = 2
+asci "ETX" = 3
+asci "EOT" = 4
+asci "ENQ" = 5
+asci "ACK" = 6
+asci "BEL" = 7
+asci "BS" = 8
+asci "TAB" = 9
+asci "LF" = 10
+asci "VT" = 11
+asci "FF" = 12
+asci "CR" = 13
+asci "SO" = 14
+asci "SI" = 15
+asci "DLE" = 16
+asci "DC1" = 17
+asci "DC2" = 18
+asci "DC3" = 19
+asci "DC4" = 20
+asci "NAK" = 21
+asci "SYN" = 22
+asci "ETB" = 23
+asci "CAN" = 24
+asci "EM" = 25
+asci "SUB" = 26
+asci "ESC" = 27
+asci "FS" = 28
+asci "GS" = 29
+asci "RS" = 30
+asci "US" = 31
+asci "Space" = 32
+asci _ = 1000
+
 
