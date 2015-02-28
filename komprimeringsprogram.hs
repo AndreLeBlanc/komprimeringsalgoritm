@@ -18,11 +18,10 @@ compressFile = do
   let filePath = makeName name Compress
   if filePath == "error" then putStr "Error, the file can't be compressed "
   	else
-  		writeFile filePath $ compress contents
+  		writeFile filePath (compress contents)
   where
 	  compress :: String -> String
-	  compress compressMe = let a = lzcomp $ strToInt compressMe
-						in intToStr a
+	  compress compressMe = intToStr $ lzcomp $ strToInt compressMe
 
 deCompressFile :: IO ()
 deCompressFile = do
@@ -35,7 +34,7 @@ deCompressFile = do
         writeFile filePath (deCompress contents)
   where
     deCompress :: String -> String
-    deCompress compressMe = intToStr $ lzdecomp $ strToInt compressMe
+    deCompress deCompressMe = intToStr $ lzdecomp $ strToInt deCompressMe
 
 
 encrypt :: IO ()
@@ -44,11 +43,10 @@ encrypt = do
   name <- getLine
   contents <- readFile name
   let filePath = makeName name Encrypt
-  writeFile filePath $ crypt contents
+  writeFile filePath (crypt contents)
   where
 	  crypt :: String -> String
-	  crypt cryptMe = let a = hash $ strToInt cryptMe
-						in intToStr a
+	  crypt cryptMe = intToStr $ hash $ strToInt cryptMe
 
 decrypt :: IO ()
 decrypt = do
@@ -58,11 +56,10 @@ decrypt = do
   let filePath = makeName name Decrypt
   if filePath == "error" then putStr "Error, the file needs to be encrypted to be decrypted "
   	else
-  		writeFile filePath $ uncrypt contents
+  		writeFile filePath (uncrypt contents)
   where
 	  uncrypt :: String -> String
-	  uncrypt uncryptMe = let a = dehash $ strToInt uncryptMe
-						in intToStr a
+	  uncrypt uncryptMe = intToStr $ dehash $ strToInt uncryptMe
 
 makeName :: String -> Funct -> String
 makeName name lastName
