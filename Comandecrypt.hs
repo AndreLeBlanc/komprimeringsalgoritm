@@ -1,9 +1,8 @@
 module Comandecrypt where
-import Data.List
 lzcomp :: Int -> [Int] -> [Int]
 lzcomp pos squashMe
 	| pos >= length squashMe = [] 	
-    | snd compressable > 3 = [127, fst compressable, snd compressable] ++ (lzcomp (pos + (snd compressable)) squashMe)
+    | snd compressable > 3 = [65, fst compressable, snd compressable] ++ (lzcomp (pos + (snd compressable)) squashMe)
 	| otherwise =  (squashMe !! pos):(lzcomp (pos + 1) squashMe)
 	where
 		compressable :: (Int, Int)
@@ -23,15 +22,15 @@ lzcomp pos squashMe
 
 		numberofjumps :: Int -> Int -> Int -> (Int, Int)
 		numberofjumps pos jumps checkPos	
-			| checkPos + jumps >= pos || length squashMe <= (pos + jumps) = (checkPos, jumps)
-			| squashMe !! (checkPos + jumps) == squashMe !! (pos +  jumps) = (checkPos, (snd (numberofjumps pos (jumps+1) checkPos)))
+			| checkPos + jumps >= pos || length squashMe <= (pos + jumps) = (pos - checkPos, jumps)
+			| squashMe !! (checkPos + jumps) == squashMe !! (pos +  jumps) = (pos - checkPos, (snd (numberofjumps pos (jumps+1) checkPos)))
 			| otherwise = (0, 0)
 
 lzdecomp :: Int -> [Int] -> [Int]
 lzdecomp pos unSquash 
-	| pos >= length unSquash = unSquash	
-	| genericIndex unSquash pos /= 127 =  lzdecomp (pos + 1) unSquash
-	| otherwise = lzdecomp (pos + (length (dezip 0)) +1) ((take pos unSquash) ++ (dezip 0) ++ (drop (pos + 3) unSquash))
+	| pos >= length unSquash -1 = unSquash	
+	| unSquash !! pos /= 65 =  lzdecomp (pos + 1) unSquash
+	| otherwise = lzdecomp (pos + (length (dezip 0))) ((take pos unSquash) ++ (dezip 0) ++ (drop (pos + 3) unSquash))
 	where
 		steps :: Int
 		steps = unSquash !! (pos + 2)
