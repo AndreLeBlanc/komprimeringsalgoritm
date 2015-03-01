@@ -129,5 +129,3 @@ asci "RS" = 30
 asci "US" = 31
 asci "Space" = 32
 asci _ = 1000
-
-
