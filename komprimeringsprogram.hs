@@ -21,7 +21,7 @@ compressFile = do
   		writeFile filePath (compress contents)
   where
 	  compress :: String -> String
-	  compress compressMe = intToStr $ lzcomp $ strToInt compressMe
+	  compress compressMe = intToStr $ (lzcomp 0) $ strToInt compressMe
 
 deCompressFile :: IO ()
 deCompressFile = do
@@ -34,7 +34,7 @@ deCompressFile = do
         writeFile filePath (deCompress contents)
   where
     deCompress :: String -> String
-    deCompress deCompressMe = intToStr $ lzdecomp $ strToInt deCompressMe
+    deCompress deCompressMe = intToStr $ (lzdecomp 0) $ strToInt deCompressMe
 
 
 encrypt :: IO ()
@@ -63,10 +63,10 @@ decrypt = do
 
 makeName :: String -> Funct -> String
 makeName name lastName
-	| unEncrypted && not compressed = (newName 4) ++ "comp.txt"
+	| unEncrypted && not compressed && lastName == Compress = (newName 4) ++ "comp.txt"
 	| unEncrypted && compressed && lastName == Decrypt = (newName 9) ++ ".txt"
 	| unEncrypted && compressed && lastName == Encrypt = (newName 4) ++ "crypt.txt"
-	| unEncrypted = (newName 8) ++ ".txt"
+	| unEncrypted && lastName == Decompress = (newName 8) ++ ".txt"
 	| otherwise = "error" 
 	where
     compressed :: Bool 
