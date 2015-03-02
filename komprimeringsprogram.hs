@@ -10,6 +10,13 @@ import Comandecrypt
 import Control.Monad
 data Funct = Compress | Decompress | Encrypt | Decrypt deriving Eq
 
+
+{- 
+PURPOSE: To compress the given file.
+PRE: 
+POST: The given file compressed.
+EXAMPLES:
+-}
 compressFile :: IO ()
 compressFile = do
   putStr "Enter uncompressed file name: "
@@ -23,20 +30,38 @@ compressFile = do
 	  compress :: String -> String
 	  compress compressMe = intToStr $ (lzcomp 0) $ strToInt compressMe
 
+{- 
+PURPOSE: To decompress the given file.
+PRE: 
+POST: 
+EXAMPLES: The given file decompressed.
+-}
 deCompressFile :: IO ()
 deCompressFile = do
   putStr "Enter compressed file name: "
   name <- getLine
   contents <- readFile name
+
   let filePath = makeName name Decompress
+
+  exist <- doesFileExist filePath
+
   if filePath == "error" then putStr "Error, the file needs to be compressed to be decompressed "
      else
-        writeFile filePath (deCompress contents)
+        if exist then writeFile (take (length filePath - 4) filePath ++ "(1).txt") (deCompress contents)
+
+          else
+            writeFile filePath (deCompress contents)
   where
     deCompress :: String -> String
     deCompress deCompressMe = intToStr $ (lzdecomp 0) $ strToInt deCompressMe
 
-
+{- 
+PURPOSE: To encrypt the given file.
+PRE: 
+POST: 
+EXAMPLES: The given file encrypted.
+-}
 encrypt :: IO ()
 encrypt = do
   putStr "Enter unencrypted file name: "
@@ -48,6 +73,12 @@ encrypt = do
 	  crypt :: String -> String
 	  crypt cryptMe = intToStr $ hash $ strToInt cryptMe
 
+{- 
+PURPOSE: The decrypt the given file.
+PRE: 
+POST: 
+EXAMPLES: The given file decrypted.
+-}
 decrypt :: IO ()
 decrypt = do
   putStr "Enter unencrypted file name: "
@@ -61,6 +92,12 @@ decrypt = do
 	  uncrypt :: String -> String
 	  uncrypt uncryptMe = intToStr $ dehash $ strToInt uncryptMe
 
+{- 
+PURPOSE: To generate a new name of the given name based on certain conditions.
+PRE: 
+POST: 
+EXAMPLES: A new version of the given name.
+-}
 makeName :: String -> Funct -> String
 makeName name lastName
 	| unEncrypted && not compressed && lastName == Compress = (newName 4) ++ "comp.txt"
@@ -78,9 +115,22 @@ makeName name lastName
     newName :: Int -> String
     newName len = take (length name - len) name 
 
+
+{- 
+PURPOSE: 
+PRE: 
+POST: 
+EXAMPLES:
+-}
 intToStr :: [Int] -> String
 intToStr a = map chr a
 
+{- 
+PURPOSE: 
+PRE: 
+POST: 
+EXAMPLES:
+-}
 strToInt :: String -> [Int]
 strToInt [] = []
 strToInt (x:xs)
@@ -93,6 +143,12 @@ strToInt (x:xs)
     trio = if [x] == "\\" then asci (take 3 xs) else 1000
     penta = if [x] == "\\" then asci (take 5 xs) else 1000
 
+{- 
+PURPOSE: 
+PRE: 
+POST: 
+EXAMPLES:
+-}
 asci :: String -> Int
 asci "DEL" = 127
 asci "NUL" = 0
