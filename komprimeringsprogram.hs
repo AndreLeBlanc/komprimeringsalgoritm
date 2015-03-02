@@ -44,17 +44,20 @@ deCompressFile = do
 
   let filePath = makeName name Decompress
 
-  exist <- doesFileExist filePath
-
   if filePath == "error" then putStr "Error, the file needs to be compressed to be decompressed "
      else
-        if exist then writeFile (take (length filePath - 4) filePath ++ "(1).txt") (deCompress contents)
+        fexist filePath 1 (deCompress contents)
 
-          else
-            writeFile filePath (deCompress contents)
   where
     deCompress :: String -> String
     deCompress deCompressMe = intToStr $ (lzdecomp 0) $ strToInt deCompressMe
+
+    fexist f x c = do
+      exist <- doesFileExist f
+      if exist 
+        then fexist ((take (length f - 4) f) ++ (show x) ++ ".txt") (x + 1) c
+      else
+        writeFile f c
 
 {- 
 PURPOSE: To encrypt the given file.
