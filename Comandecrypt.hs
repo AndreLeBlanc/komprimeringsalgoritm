@@ -2,7 +2,7 @@ module Comandecrypt where
 lzcomp :: Int -> [Int] -> [Int]
 lzcomp pos squashMe
 	| pos >= length squashMe = [] 	
-    | snd compressable > 3 = [65, fst compressable, snd compressable] ++ (lzcomp (pos + (snd compressable)) squashMe)
+    | snd compressable > 3 = [127, fst compressable, snd compressable] ++ (lzcomp (pos + (snd compressable)) squashMe)
 	| otherwise =  (squashMe !! pos):(lzcomp (pos + 1) squashMe)
 	where
 		compressable :: (Int, Int)
@@ -29,7 +29,7 @@ lzcomp pos squashMe
 lzdecomp :: Int -> [Int] -> [Int]
 lzdecomp pos unSquash 
 	| pos >= length unSquash -1 = unSquash	
-	| unSquash !! pos /= 65 =  lzdecomp (pos + 1) unSquash
+	| unSquash !! pos /= 127 =  lzdecomp (pos + 1) unSquash
 	| otherwise = lzdecomp (pos + (length (dezip 0))) ((take pos unSquash) ++ (dezip 0) ++ (drop (pos + 3) unSquash))
 	where
 		steps :: Int
@@ -42,8 +42,38 @@ lzdecomp pos unSquash
 		dezip jump	| steps > jump + 1 =  [unSquash !! (getPos + jump)] ++ (dezip (jump + 1))
 					| otherwise = [unSquash !! (getPos + jump)]
 
-hash :: [Int] -> [Int]
-hash = undefined
+hash :: Int -> [Int] -> [Int]
+hash alice message = toCharList $ map hasch (byte message)
+	where 
+		hasch :: Int -> Int
+		hasch meddelande = (alice + meddelande) `mod` 260144641
+		
+		byte :: [Int] -> [Int]
+		byte meddelande | length meddelande >= 4 = (makeByte $ take 4 meddelande):(byte (drop 4 meddelande))
+						| length meddelande == 0 = []
+						| otherwise = [makeByte meddelande]
 
-dehash :: [Int] -> [Int]
-dehash = undefined
+dehash :: Int -> [Int] -> [Int]
+dehash password hash = toCharList $ map smoke $ byte hash
+	where
+		smoke :: Int -> Int
+		smoke unHash = (unHash - password) `mod` 260144641
+
+byte :: [Int] -> [Int]
+byte meddelande 
+	| length meddelande >= 4 = (makeByte $ take 4 meddelande):(byte (drop 4 meddelande))
+	| length meddelande == 0 = []
+	| otherwise = [makeByte meddelande]
+
+makeByte :: [Int] -> Int
+makeByte lista 	
+	| length lista >= 1 = 127*(makeByte (init lista)) + last lista
+	| otherwise = 0
+
+toCharList :: [Int] -> [Int]
+toCharList [] = []
+toCharList (x:xs) = (toChar x) ++ toCharList xs
+
+toChar :: Int -> [Int]
+toChar 0 = []
+toChar number = (toChar (number `div` 127)) ++ [number `mod` 127]
