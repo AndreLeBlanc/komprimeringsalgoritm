@@ -12,29 +12,44 @@ data Funct = Compress | Decompress | Encrypt | Decrypt deriving Eq
 
 
 {- 
+compressFile
+
 PURPOSE: To compress the given file.
-PRE: 
+PRE: The text file the user wants to compress needs to be in the same directory as the program.
 POST: The given file compressed.
-EXAMPLES:
+EXAMPLES: compressFile -> "test.txt" -> "testcomp.txt"
 -}
 compressFile :: IO ()
 compressFile = do
   putStr "Enter uncompressed file name: "
   name <- getLine
   contents <- readFile name
+
   let filePath = makeName name Compress
+
+      fexist :: String -> Int -> String -> IO ()
+      fexist f x c = do
+        exist <- doesFileExist f
+        if exist 
+          then fexist ((take (length f - 4) f) ++ (show x) ++ ".txt") (x + 1) c
+        else
+          writeFile f c
+
+
   if filePath == "error" then putStr "Error, the file can't be compressed "
   	else
-  		writeFile filePath (compress contents)
+  		fexist filePath 1 (compress contents)
+
   where
 	  compress :: String -> String
 	  compress compressMe = intToStr $ (lzcomp 0) $ strToInt compressMe
 
+
 {- 
 PURPOSE: To decompress the given file.
-PRE: 
-POST: 
-EXAMPLES: The given file decompressed.
+PRE: The text file the user wants to decompress needs to be in the same directory as the program.
+POST: The given file decompressed.
+EXAMPLES: deCompressFile -> "testcomp.txt" -> "test.txt"
 -}
 deCompressFile :: IO ()
 deCompressFile = do
@@ -52,6 +67,7 @@ deCompressFile = do
     deCompress :: String -> String
     deCompress deCompressMe = intToStr $ (lzdecomp 0) $ strToInt deCompressMe
 
+    fexist :: String -> Int -> String -> IO ()
     fexist f x c = do
       exist <- doesFileExist f
       if exist 
@@ -120,19 +136,20 @@ makeName name lastName
 
 
 {- 
-PURPOSE: 
+PURPOSE: To convert a list of integers to its corresponding characters 
+         concatenated into a string.
 PRE: 
 POST: 
-EXAMPLES:
+EXAMPLES: A string of the corresponding characters given from the list of integers.
 -}
 intToStr :: [Int] -> String
 intToStr a = map chr a
 
 {- 
-PURPOSE: 
+PURPOSE: To convert the characters of a string to its corresponding integers.
 PRE: 
 POST: 
-EXAMPLES:
+EXAMPLES: A list of the corresponding integers given from the string.
 -}
 strToInt :: String -> [Int]
 strToInt [] = []
