@@ -37,13 +37,11 @@ compressFile = do
 
 
   if filePath == "error" then putStr "Error, the file can't be compressed "
-  	else
-  		fexist filePath 1 (compress contents)
-
+    else
+      fexist filePath 1 (compress contents)
   where
-	  compress :: String -> String
-	  compress compressMe = intToStr $ (lzcomp 0) $ strToInt compressMe
-
+    compress :: String -> String
+    compress compressMe = intToStr $ (lzcomp 0) $ strToInt compressMe
 
 {- 
 PURPOSE: To decompress the given file.
@@ -85,12 +83,16 @@ encrypt :: IO ()
 encrypt = do
   putStr "Enter unencrypted file name: "
   name <- getLine
+  putStr "Enter password, 1-4 ASCII characters "
+  password <- getLine
+  let pass = makepswd password
+  password <- getLine
   contents <- readFile name
   let filePath = makeName name Encrypt
-  writeFile filePath (crypt contents)
+  writeFile filePath (crypt contents pass)
   where
-	  crypt :: String -> String
-	  crypt cryptMe = intToStr $ hash $ strToInt cryptMe
+    crypt :: String -> Int -> String
+    crypt cryptMe pass = intToStr $ (hash pass) $ strToInt cryptMe
 
 {- 
 PURPOSE: The decrypt the given file.
@@ -103,13 +105,16 @@ decrypt = do
   putStr "Enter unencrypted file name: "
   name <- getLine
   contents <- readFile name
+  putStr "Enter password, 1-4 ASCII characters "
+  password <- getLine
+  let pass = makepswd password
   let filePath = makeName name Decrypt
   if filePath == "error" then putStr "Error, the file needs to be encrypted to be decrypted "
-  	else
-  		writeFile filePath (uncrypt contents)
+    else
+      writeFile filePath (uncrypt contents pass)
   where
-	  uncrypt :: String -> String
-	  uncrypt uncryptMe = intToStr $ dehash $ strToInt uncryptMe
+    uncrypt :: String -> Int -> String
+    uncrypt uncryptMe password = intToStr $ (dehash password) $ strToInt uncryptMe
 
 {- 
 PURPOSE: To generate a new name of the given name based on certain conditions.
@@ -119,12 +124,12 @@ EXAMPLES: A new version of the given name.
 -}
 makeName :: String -> Funct -> String
 makeName name lastName
-	| unEncrypted && not compressed && lastName == Compress = (newName 4) ++ "comp.txt"
-	| unEncrypted && compressed && lastName == Decrypt = (newName 9) ++ ".txt"
-	| unEncrypted && compressed && lastName == Encrypt = (newName 4) ++ "crypt.txt"
-	| unEncrypted && lastName == Decompress = (newName 8) ++ ".txt"
-	| otherwise = "error" 
-	where
+  | unEncrypted && not compressed && lastName == Compress = (newName 4) ++ "comp.txt"
+  | not unEncrypted && lastName == Decrypt = (newName 9) ++ ".txt"
+  | unEncrypted && compressed && lastName == Encrypt = (newName 4) ++ "crypt.txt"
+  | unEncrypted && lastName == Decompress = (newName 8) ++ ".txt"
+  | otherwise = "error" 
+  where
     compressed :: Bool 
     compressed = (drop (length name - 8) name) == "comp.txt"
     
@@ -162,6 +167,10 @@ strToInt (x:xs)
     dou = if [x] == "\\" then asci (take 2 xs) else 1000
     trio = if [x] == "\\" then asci (take 3 xs) else 1000
     penta = if [x] == "\\" then asci (take 5 xs) else 1000
+
+
+makepswd :: String -> Int
+makepswd pass = 123423
 
 {- 
 PURPOSE: 
