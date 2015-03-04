@@ -56,7 +56,7 @@ compressFile = do
       fexist filePath 1 (compress contents)
   where
     compress :: String -> String
-    compress compressMe = intToStr $ (lzcomp 0) $ strToInt2 compressMe
+    compress compressMe = intToStr $ (lzcomp 0) $ strToInt compressMe
 
 {- 
 deCompressFile
@@ -209,15 +209,6 @@ strToInt (x:xs)
     dou = if [x] == "\\" then asci (take 2 xs) else 1000
     trio = if [x] == "\\" then asci (take 3 xs) else 1000
     penta = if [x] == "\\" then asci (take 5 xs) else 1000
-
-strToInt2 [] = []
-strToInt2 (x:xs) = fromEnum x : strToInt2 xs
-
-testFunc = do
-  name <- getLine
-  contents <- readFile name
-  let c = strToInt2 contents
-  print c
 
 {- 
 PURPOSE: To generate a password based on the given string.
