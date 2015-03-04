@@ -1,13 +1,19 @@
 {-for binary strings-}
 {-# LANGUAGE LambdaCase #-}
 import Data.Binary
-import qualified Data.ByteString.Char8 as B
 import System.IO
-import Bib
 import Data.Char
 import System.Directory
 import Comandecrypt
 import Control.Monad
+import Test.HUnit
+
+{-
+Funct = 
+
+REPR. CONV.: Funct is represented by four conditions, Compress, Decompress, Encrypt and Decrypt.
+REPR. INVARIANT: 
+-}
 data Funct = Compress | Decompress | Encrypt | Decrypt deriving Eq
 
 
@@ -26,7 +32,16 @@ compressFile = do
   contents <- readFile name
 
   let filePath = makeName name Compress
+      {- 
+        fexist f x c
 
+        PURPOSE: Checks whether a file with the given name already exists in the directory,
+                 and if so, generates and saves the file with its new name.
+        PRE: True
+        POST: The new file with the given name if no conflicts of name is found within the
+              directory, otherwise the new file saved with a new name.
+        EXAMPLES: 
+-}
       fexist :: String -> Int -> String -> IO ()
       fexist f x c = do
         exist <- doesFileExist f
@@ -41,9 +56,11 @@ compressFile = do
       fexist filePath 1 (compress contents)
   where
     compress :: String -> String
-    compress compressMe = intToStr $ (lzcomp 0) $ strToInt compressMe
+    compress compressMe = intToStr $ (lzcomp 0) $ strToInt2 compressMe
 
 {- 
+deCompressFile
+
 PURPOSE: To decompress the given file.
 PRE: The text file the user wants to decompress needs to be in the same directory as the program.
 POST: The given file decompressed.
@@ -73,11 +90,16 @@ deCompressFile = do
       else
         writeFile f c
 
+
+
 {- 
+encrypt
+
 PURPOSE: To encrypt the given file.
-PRE: 
-POST: 
-EXAMPLES: The given file encrypted.
+PRE: The given file must be in its compressed state, the chosen password must be 1-4 ASCII
+     characters.
+POST: The given file encrypted.
+EXAMPLES: encrypt -> "testcomp.txt" -> "testcompcrypt.txt"
 -}
 encrypt :: IO ()
 encrypt = do
@@ -86,19 +108,30 @@ encrypt = do
   putStr "Enter password, 1-4 ASCII characters "
   password <- getLine
   let pass = makepswd password
-  password <- getLine
   contents <- readFile name
   let filePath = makeName name Encrypt
-  writeFile filePath (crypt contents pass)
+  if filePath == "error" then putStr "Error, the file needs to be compressed to be encrypted"
+    else
+      fexist filePath 1 (crypt contents pass)
   where
     crypt :: String -> Int -> String
     crypt cryptMe pass = intToStr $ (hash pass) $ strToInt cryptMe
 
+    fexist :: String -> Int -> String -> IO ()
+    fexist f x c = do
+      exist <- doesFileExist f
+      if exist 
+        then fexist ((take (length f - 4) f) ++ (show x) ++ ".txt") (x + 1) c
+      else
+        writeFile f c
+
 {- 
+decrypt
+
 PURPOSE: The decrypt the given file.
 PRE: 
-POST: 
-EXAMPLES: The given file decrypted.
+POST: The given file decrypted.
+EXAMPLES: 
 -}
 decrypt :: IO ()
 decrypt = do
@@ -111,16 +144,25 @@ decrypt = do
   let filePath = makeName name Decrypt
   if filePath == "error" then putStr "Error, the file needs to be encrypted to be decrypted "
     else
-      writeFile filePath (uncrypt contents pass)
+      fexist filePath 1 (uncrypt contents pass)
   where
     uncrypt :: String -> Int -> String
     uncrypt uncryptMe password = intToStr $ (dehash password) $ strToInt uncryptMe
 
+    fexist :: String -> Int -> String -> IO ()
+    fexist f x c = do
+      exist <- doesFileExist f
+      if exist 
+        then fexist ((take (length f - 4) f) ++ (show x) ++ ".txt") (x + 1) c
+      else
+        writeFile f c
+
 {- 
 PURPOSE: To generate a new name of the given name based on certain conditions.
-PRE: 
-POST: 
-EXAMPLES: A new version of the given name.
+PRE: True
+POST: A new version of the given name.
+EXAMPLES: makeName "test.txt" Compress = "testcomp.txt"
+          makeName "testcomp.txt" Compress = "error"
 -}
 makeName :: String -> Funct -> String
 makeName name lastName
@@ -143,18 +185,18 @@ makeName name lastName
 {- 
 PURPOSE: To convert a list of integers to its corresponding characters 
          concatenated into a string.
-PRE: 
-POST: 
-EXAMPLES: A string of the corresponding characters given from the list of integers.
+PRE: True
+POST: A string of the corresponding characters given from the list of integers.
+EXAMPLES: intToStr [116,101,115,116] = "test"
 -}
 intToStr :: [Int] -> String
 intToStr a = map chr a
 
 {- 
 PURPOSE: To convert the characters of a string to its corresponding integers.
-PRE: 
-POST: 
-EXAMPLES: A list of the corresponding integers given from the string.
+PRE: True
+POST: A list of the corresponding integers given from the string.
+EXAMPLES: strToInt "test" = [116,101,115,116]
 -}
 strToInt :: String -> [Int]
 strToInt [] = []
@@ -168,10 +210,28 @@ strToInt (x:xs)
     trio = if [x] == "\\" then asci (take 3 xs) else 1000
     penta = if [x] == "\\" then asci (take 5 xs) else 1000
 
+strToInt2 [] = []
+strToInt2 (x:xs) = fromEnum x : strToInt2 xs
 
+testFunc = do
+  name <- getLine
+  contents <- readFile name
+  let c = strToInt2 contents
+  print c
+
+{- 
+PURPOSE: To generate a password based on the given string.
+PRE: True
+POST: A password consisting of integers based on the given string.
+EXAMPLES: makepswd "test" = 244939252
+-}
 makepswd :: String -> Int
-makepswd pass = 123423
+makepswd "" = 0
+makepswd pass = if length pass == 1
+                  then head $ strToInt [last pass]
+                else
 
+                    (head $ strToInt [last pass]) + 128 * makepswd (init pass)
 {- 
 PURPOSE: 
 PRE: 
@@ -214,3 +274,16 @@ asci "RS" = 30
 asci "US" = 31
 asci "Space" = 32
 asci _ = 1000
+
+test1 = TestCase (assertEqual "makeName," ("testcomp.txt") (makeName "test.txt" Compress))
+test2 = TestCase (assertEqual "makeName," ("test.txt") (makeName "testcrypt.txt" Decrypt))
+test3 = TestCase (assertEqual "makeName," ("testcompcrypt.txt") (makeName "testcomp.txt" Encrypt))
+test4 = TestCase (assertEqual "makeName," ("test.txt") (makeName "testcomp.txt" Decompress))
+test5 = TestCase (assertEqual "makeName," ("error") (makeName "testcomp.txt" Compress))
+test6 = TestCase (assertEqual "intToStr," ("testing") (intToStr [116,101,115,116,105,110,103]))
+test7 = TestCase (assertEqual "strToInt," ([116,101,115,116,105,110,103]) (strToInt "testing"))
+test8 = TestCase (assertEqual "makepswd," (244939252) (makepswd "test"))
+
+tests = TestList [TestLabel "test1" test1, TestLabel "test2" test2,
+        TestLabel "test3" test3, TestLabel "test4" test4, TestLabel "test5" test5, 
+        TestLabel "test6" test6, TestLabel "test7" test7, TestLabel "test8" test8]
