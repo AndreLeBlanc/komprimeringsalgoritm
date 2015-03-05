@@ -1,13 +1,10 @@
-{{-for binary strings-}
 {-# LANGUAGE LambdaCase #-}
-import Data.Binary
 import System.IO
 import Data.Char
 import System.Directory
 import Comandecrypt
 import Control.Monad
 import Test.HUnit
-
 {- Group 18
    Dennis Granberg
    André Le Blanc
@@ -55,13 +52,13 @@ compressFile = do
                 fexist "test.txt" 1 "hey" -> File does not exist ->
                 File saved as "test.txt" with contents "hey"
       -}
-      fexist :: String -> Int -> String -> IO ()
-      fexist f x c = do
-        exist <- doesFileExist f
-        if exist 
-          then fexist ((take (length f - 4) f) ++ (show x) ++ ".txt") (x + 1) c
-        else
-          writeFile f c
+    fexist :: String -> Int -> String -> IO ()
+    fexist f x c = do
+      exist <- doesFileExist f
+      if exist 
+        then fexist ((take (length f - 4) f) ++ (show x) ++ ".txt") (x + 1) c
+      else
+        writeFile f c
 
     {- compress s
        PURPOSE: To compress the given string s.
