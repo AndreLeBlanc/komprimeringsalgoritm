@@ -208,7 +208,9 @@ makeByte lista
 -}
 toCharList :: [Int] -> [Int]
 toCharList [] = []
-toCharList (x:xs) = (four $ toChar x) ++ toCharList xs
+toCharList (x:xs)
+ | length xs == 0 = toChar x
+ | otherwise = (four $ toChar x) ++ toCharList xs
 
 {-  toChar number
 	PURPOSE: To turn a number in base 2^28 into base 2^7 and stor the result in a list.
