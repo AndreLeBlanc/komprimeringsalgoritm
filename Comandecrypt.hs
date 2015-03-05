@@ -1,38 +1,40 @@
 module Comandecrypt where
 import Test.HUnit
 
-{- 	lzcomp position squashMe
-	PURPOSE: lzcomp does the compression for the program.
-	PRE: Position must be equal or less than the length of squashMe. None of the numbers in squash me can be larger than 127. 
-	POST: squashMe compressed with the lz77 algorithm.
-	EXAMPLES: 	lzcomp 0 [1,2,3,4,5,6,7] == [1,2,3,4,5,6,7]
-				lzcomp 0 [1,2,3,4,1,2,3,4,6,7,8,1,2,3,4] == [1,2,3,4,127,4,4,6,7,8,127,11,4]
+{- lzcomp position squashMe
+   PURPOSE: lzcomp does the compression for the program.
+   PRE: Position must be equal or less than the length of squashMe. None of the numbers in squash me can be larger than 126. 
+   POST: squashMe compressed with the lz77 algorithm.
+   EXAMPLES: lzcomp 0 [1,2,3,4,5,6,7] == [1,2,3,4,5,6,7]
+             lzcomp 0 [1,2,3,4,1,2,3,4,6,7,8,1,2,3,4] == [1,2,3,4,127,4,4,6,7,8,127,11,4]
 -}
 lzcomp :: Int -> [Int] -> [Int]
 lzcomp pos squashMe
-	| pos >= length squashMe = [] 	
+    | pos >= length squashMe = [] 	
     | snd compressable > 3 = [127, fst compressable, snd compressable] ++ (lzcomp (pos + (snd compressable)) squashMe)
-	| otherwise =  (squashMe !! pos):(lzcomp (pos + 1) squashMe)
-	where
+    | otherwise =  (squashMe !! pos):(lzcomp (pos + 1) squashMe)
+    where
 		
-		{- 	compressable
-			PURPOSE: compressable find the number of jumps back that there is a pattern that matches the elements at and following squashMe at position pos.
-			PRE: True
-			Post: A tuple where the first Int represents the number of elements that match and the second elements represents the number of jumps back from 
-				  pos that the matching elements start. If there are no matching elements (0,0) is returned.
-			EXAMPLES: squashMe == [a,b,c,d,e,f,a,b,c,d,e], pos == 6
-					  compressable == (0,5)
-					  squashMe == [a,b,c,d,e,f,g,h,i], pos == 5
-					  compressable == (0,0)
-		-}
-		compressable :: (Int, Int)
-		compressable = search (largest compressable') compressable'
+        {- compressable
+           PURPOSE: compressable finds the number of jumps back that there is a sequence of elements that match the elements at and
+                    following squashMe at position pos.
+           PRE: True
+           Post: A tuple where the first Int represents the number of elements that match and the second elements represents the
+                 number of jumps back from pos that the matching elements start. If there are no matching elements (0,0) is returned.
+           EXAMPLES: squashMe == [a,b,c,d,e,f,a,b,c,d,e], pos == 6
+                     compressable == (0,5)
+                     squashMe == [a,b,c,d,e,f,g,h,i], pos == 5
+                     compressable == (0,0)
+        -}
+
+        compressable :: (Int, Int)
+        compressable = search (largest compressable') compressable'
 		
-		{- 	search findMe (x:xs)
-			PURPOSE: To find the tuple that contains the largest number of jumps.
-			PRE: FindMe has to be the second value in one of the tuples.
-			EXAMPLES: 	search 5 [(6,5),(2,2),(1,1)] == (3,5)
-						search 7 [(2,3),(6,5),(8,7)] == (8,7) 
+        {- search findMe (x:xs)
+           PURPOSE: To find the tuple that contains the longest repeating pattern.
+           PRE: FindMe has to be equal to the second value in one of the tuples.
+           EXAMPLES: search 5 [(6,5),(2,2),(1,1)] == (3,5)
+                     search 7 [(2,3),(6,5),(8,7)] == (8,7) 
 		-}
 		search :: Int -> [(Int, Int)] -> (Int, Int) 
 		search _ [] = (0,0)
@@ -42,7 +44,7 @@ lzcomp pos squashMe
 			PURPOSE: To find the the number of jumps back that you can find the longest number of consecutive elements that are the same as 
 		             squashMe at the position pos and the following elements. 
 			PRE: True
-			POST: The largest Int that is the second element in a tuple in the list lista. 
+			POST: The largest Int that is in the second element in a tuple in the list lista. 
 			EXAMPLES largest [(1,2),(7,8),(5,6] == 8
 					 largest [(5,6),(2,3)] == 6	
 		-}
@@ -50,10 +52,10 @@ lzcomp pos squashMe
 		largest lista = maximum $ map snd lista
 		
 		{- 	compresssable'
-			PURPOSE: compressable' makes a list tuples where the first elements represents the number of matching elements and the second element represents the number of 
-					 steps back from pos that these elements start.
+			PURPOSE: compressable' makes a list of tuples where the first elements represents the number of matching elements and the second element represents the number of 
+					 positions back from pos that these elements start.
 			PRE: True
-			POST: A list of tuples where the first element represents the number of steps back from pos and the second element represents the number of matching elements.
+			POST: A list of tuples where the first element represents the number of positions back from pos that a matching sequnce starts and the second element represents the number of matching elements.
 				  The list starts at position 0 in squashMe or pos - 127 if pos is greater than 127.
 			EXAMPLE: squashMe == [2,3,5,3,1,5,5], pos == 5
 					 compressable' == [(5,0),(4,0),(3,1)]
@@ -96,7 +98,7 @@ lzdecomp pos unSquash
 		{- steps
 		   PURPOSE: To provide a maximum limit to the number of elements that should be repeated.
 		   PRE: TRUE
-		   POST: The number of elements that should be repeated.
+		   POST: The Int at position pos + 2 in the list unSquash.
 		   EXAMPLES: unSquash == [1,2,3,4,5,6,127,4,3], pos == 6
 		   			 steps == 3
 					 unSquash == [1,2,3,4,5,6,127,5,5], pos == 6
@@ -108,7 +110,7 @@ lzdecomp pos unSquash
 		{- 	getPos
 			PURPOSE: To find the position where the repeat of elements should start.
 			PRE: True
-			POST: An Int representing where in unSquash that dezip should start repeating elements from.
+			POST: The Int at position pos + 1 in the list unSquash.
 		    EXAMPLES: unSquash == [1,2,3,4,5,6,127,4,3], pos == 6
 		   			  getPos == 2
 					  unSquash == [1,2,3,4,5,6,127,5,5], pos == 6
@@ -129,6 +131,7 @@ lzdecomp pos unSquash
 		dezip :: Int -> [Int]
 		dezip jump	| steps > jump + 1 =  [unSquash !! (getPos + jump)] ++ (dezip (jump + 1))
 					| otherwise = [unSquash !! (getPos + jump)]
+
 {-  hash password message
 	PURPOSE: To hash files.
 	PRE: True
@@ -154,7 +157,7 @@ hash alice message = toCharList $ map hasch $ byte message
 {- dehash password hash
    PURPOSE: To decrypt files encrypted by the function hash.
    PRE: Files have to be encrypted by the function hash or the same algorithm as in the function hash.
-   POST: an unencrypted version of the list hash
+   POST: An unencrypted version of the list hash
    EXAMPLES: dehash 4534567 [126,15,103,42,126,28,110,51] == [123,123,5,3,124,8,12,12]
 			 dehash 45345 [23,15,15,56,12,81,91,26] == [23,12,45,23,12,78,120,121]
 -}
@@ -163,7 +166,7 @@ dehash password hash = toCharList $ map smoke $ byte hash
 	where
 
 		{- smoke unHash
-		   PURPOSEE: To decrypt a number using a reverse caesar cipher.
+		   PURPOSEE: To decrypt an Int using a reverse Caesar cipher.
 		   PRE: True
 		   POST: A decrypted version of unHash.
 		   EXAMPLES: password == 1234567
@@ -174,7 +177,7 @@ dehash password hash = toCharList $ map smoke $ byte hash
 		smoke unHash = (unHash - password) `mod` 268435456
 
 {- byte meddelande
-   PURPOSE: To turn a list of Ints into a list of Ints where four elements are put into one.
+   PURPOSE: To turn a list of Ints representing a numbers in base 2^7 into a list representing the same numbers in base 2^28.
    PRE: True
    POST: A list of numbers in base 2^28 instead of a list of numbers in base 2^7.
    EXAMPLES: byte [23,15,15,56,12,81,91,26] == [48482232,26504602]
@@ -244,6 +247,10 @@ test11 = TestCase (assertEqual "hash," ([23,15,15,56,12,81,91,26])
 				 (hash 45345 [23,12,45,23,12,78,120,121]))
 test12 = TestCase (assertEqual "dehash," ([123,123,5,3,124,8,12,12])
 				 (dehash 4534567 [126,15,103,42,126,28,110,51]))
+
+testsComandecrypt = TestList [TestLabel "test9" test9, TestLabel "test10" test10,
+        			TestLabel "test11" test11, TestLabel "test12" test12]
+
 
 testsComandecrypt = TestList [TestLabel "test9" test9, TestLabel "test10" test10,
         			TestLabel "test11" test11, TestLabel "test12" test12]
