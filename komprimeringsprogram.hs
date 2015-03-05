@@ -248,9 +248,10 @@ makeName name lastName
     unEncrypted
 
     PURPOSE: To check if the string ends with "crypt.txt"
-    PRE:
+    PRE: True
     POST: True if the string does not end with "crypt.txt", otherwise False.
-    EXAMPLES:
+    EXAMPLES: name == "hello.txt" == True
+              name == "hellocrypt.txt" == False
     -}
     unEncrypted :: Bool
     unEncrypted = (drop (length name - 9) name) /= "crypt.txt"
