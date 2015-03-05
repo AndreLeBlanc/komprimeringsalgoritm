@@ -1,4 +1,4 @@
-{-for binary strings-}
+{{-for binary strings-}
 {-# LANGUAGE LambdaCase #-}
 import Data.Binary
 import System.IO
@@ -8,45 +8,52 @@ import Comandecrypt
 import Control.Monad
 import Test.HUnit
 
-{-
-Funct
+{- Group 18
+   Dennis Granberg
+   André Le Blanc
+-}
 
-REPR. CONV.: Funct is represented by four conditions, Compress, Decompress, Encrypt and Decrypt.
-REPR. INVARIANT: None
+{- Funct
+REPRESENTATION CONVENTION: 
+  - Compress represents the compressFile function
+  - Decompress represents the deCompressFile function
+  - Encrypt represents the encrypt function
+  - Decrypt represents the decrypt function 
+REPRESENTATION INVARIANT: 
+  - None
 -}
 data Funct = Compress | Decompress | Encrypt | Decrypt deriving Eq
 
 
-{- 
-compressFile
-
-PURPOSE: To compress the given file.
-PRE: The text file the user wants to compress needs to be in the same directory as the program.
-POST: The given file compressed.
-EXAMPLES: compressFile -> "test.txt" -> "testcomp.txt"
+{- compressFile
+   PURPOSE: To compress files.
+   PRE: The text file the user wants to compress needs to be in the same directory as the program.
+        It can only contain ASCII characters and it can't contain ASCII character 127.
+   POST: The given file compressed.
+   EXAMPLES: compressFile -> "test.txt" -> "testcomp.txt"
 -}
 compressFile :: IO ()
 compressFile = do
   putStr "Enter uncompressed file name: "
   name <- getLine
   contents <- readFile name
-
   let filePath = makeName name Compress
-
-      {- 
-        fexist f x c
-
-        PURPOSE: Checks whether a file with the given name f already exists in the directory,
-                 and if so, generates and saves the file with contents c and its new name.
-        PRE: True
-        POST: The new file with contents c and the given name f if no conflicts of the name 
-              is found within the directory, otherwise the new file is saved with contents c
-              and a new name.
-        EXAMPLES: fexist "test.txt" 1 "hey" -> File already exists ->
-                  File saved as "test1.txt" with contents "hey"
-
-                  fexist "test.txt" 1 "hey" -> File does not exist ->
-                  File saved as "test.txt" with contents "hey"
+  if filePath == "error" then putStr "Error, the file can't be compressed "
+    else
+      fexist filePath 1 (compress contents)
+  where
+    
+    {- 
+      fexist f x c
+      PURPOSE: Checks whether a file with the given name f already exists in the directory,
+               and if so, generates and saves the file with contents c and its new name.
+      PRE: True
+      POST: A new file with contents c and the given name f if no naming conflicts occur
+            within the directory, otherwise the new file is saved with contents c and a new name.
+      EXAMPLES: fexist "test.txt" 1 "hey" -> File already exists ->
+                File saved as "test1.txt" with contents "hey"
+                fexist "test.txt" 1 "hey" -> File does not exist ->
+                File saved as "test.txt" with contents "hey"
       -}
       fexist :: String -> Int -> String -> IO ()
       fexist f x c = do
@@ -56,29 +63,20 @@ compressFile = do
         else
           writeFile f c
 
-
-  if filePath == "error" then putStr "Error, the file can't be compressed "
-    else
-      fexist filePath 1 (compress contents)
-  where
-
-    {- 
-    compress s
-
-    PURPOSE: To compress the given string s.
-    PRE: True.
-    POST: The given string compressed.
-    EXAMPLES: compress "test test" = "test \DEL\ENQ\EOT"
+    {- compress s
+       PURPOSE: To compress the given string s.
+       PRE: True.
+       POST: The given string compressed.
+       EXAMPLES: compress "test test" = "test \DEL\ENQ\EOT"
     -}
     compress :: String -> String
     compress compressMe = intToStr $ (lzcomp 0) $ strToInt compressMe
 
 
-{- 
-deCompressFile
-
+{- deCompressFile
 PURPOSE: To decompress the given file.
 PRE: The text file the user wants to decompress needs to be in the same directory as the program.
+     It must be compressed by the function compressFile.
 POST: The given file decompressed.
 EXAMPLES: deCompressFile -> "testcomp.txt" -> "test.txt"
 -}
@@ -87,41 +85,34 @@ deCompressFile = do
   putStr "Enter compressed file name: "
   name <- getLine
   contents <- readFile name
-
   let filePath = makeName name Decompress
 
   if filePath == "error" then putStr "Error, the file needs to be compressed to be decompressed "
-     else
-        fexist filePath 1 (deCompress contents)
-
+    else
+      fexist filePath 1 (deCompress contents)
   where
 
-    {- 
-    deCompress s
-
-    PURPOSE: To decompress the given string s
-    PRE: True
-    POST: The given string decompressed
-    EXAMPLES: deCompress "test \DEL\ENQ\EOT" = "test test"
+    {- deCompress s
+       PURPOSE: To decompress the given string s
+       PRE: True
+       POST: The given string decompressed
+       EXAMPLES: deCompress "test \DEL\ENQ\EOT" = "test test"
     -}
     deCompress :: String -> String
     deCompress deCompressMe = intToStr $ (lzdecomp 0) $ strToInt deCompressMe
 
-{- 
-fexist f x c
-
-PURPOSE: Checks whether a file with the given name f already exists in the directory,
-         and if so, generates and saves the file with contents c and its new name.
-PRE: True
-POST: The new file with contents c and the given name f if no conflicts of the name 
-      is found within the directory, otherwise the new file is saved with contents c
-      and a new name.
-EXAMPLES: fexist "test.txt" 1 "hey" -> File already exists ->
-          File saved as "test1.txt" with contents "hey"
-
-          fexist "test.txt" 1 "hey" -> File does not exist ->
-          File saved as "test.txt" with contents "hey"
--}
+    {- 
+      fexist f x c
+      PURPOSE: Checks whether a file with the given name f already exists in the directory,
+               and if so, generates and saves the file with contents c and its new name.
+      PRE: True
+      POST: A new file with contents c and the given name f if no naming conflicts occur
+            within the directory, otherwise the new file is saved with contents c and a new name.
+      EXAMPLES: fexist "test.txt" 1 "hey" -> File already exists ->
+                File saved as "test1.txt" with contents "hey"
+                fexist "test.txt" 1 "hey" -> File does not exist ->
+                File saved as "test.txt" with contents "hey"
+    -}
     fexist :: String -> Int -> String -> IO ()
     fexist f x c = do
       exist <- doesFileExist f
@@ -130,16 +121,12 @@ EXAMPLES: fexist "test.txt" 1 "hey" -> File already exists ->
       else
         writeFile f c
 
-
-
-{- 
-encrypt
-
-PURPOSE: To encrypt the given file.
-PRE: The given file must be in its compressed state, the chosen password must be 1-4 ASCII
-     characters. The file needs to be in the same directory as the program.
-POST: The given file encrypted.
-EXAMPLES: encrypt -> "testcomp.txt" -> "testcompcrypt.txt"
+{- encrypt
+   PURPOSE: To encrypt the given file.
+   PRE: The given file must be in its compressed state, the chosen password must be 1-4 ASCII
+        characters. The file needs to be in the same directory as the program.
+   POST: The given file encrypted.
+   EXAMPLES: encrypt -> "testcomp.txt" -> "testcompcrypt.txt"
 -}
 encrypt :: IO ()
 encrypt = do
@@ -155,32 +142,27 @@ encrypt = do
       fexist filePath 1 (crypt contents pass)
   where
 
-    {- 
-    crypt s p
-
-    PURPOSE: To encrypt the given string s with password p.
-    PRE: True.
-    POST: The given string s encrypted with password p.
-    EXAMPLES: crypt "test" 1234 = "te}F"
+    {- crypt s p
+       PURPOSE: To encrypt the given string s with password p.
+       PRE: True.
+       POST: The given string s encrypted with password p.
+       EXAMPLES: crypt "test" 1234 = "te}F"
     -}
     crypt :: String -> Int -> String
     crypt cryptMe pass = intToStr $ (hash pass) $ strToInt cryptMe
 
-{- 
-fexist f x c
-
-PURPOSE: Checks whether a file with the given name f already exists in the directory,
-         and if so, generates and saves the file with contents c and its new name.
-PRE: True
-POST: The new file with contents c and the given name f if no conflicts of the name 
-      is found within the directory, otherwise the new file is saved with contents c
-      and a new name.
-EXAMPLES: fexist "test.txt" 1 "hey" -> File already exists ->
-          File saved as "test1.txt" with contents "hey"
-
-          fexist "test.txt" 1 "hey" -> File does not exist ->
-          File saved as "test.txt" with contents "hey"
--}
+    {- 
+      fexist f x c
+      PURPOSE: Checks whether a file with the given name f already exists in the directory,
+               and if so, generates and saves the file with contents c and its new name.
+      PRE: True
+      POST: A new file with contents c and the given name f if no naming conflicts occur
+            within the directory, otherwise the new file is saved with contents c and a new name.
+      EXAMPLES: fexist "test.txt" 1 "hey" -> File already exists ->
+                File saved as "test1.txt" with contents "hey"
+                fexist "test.txt" 1 "hey" -> File does not exist ->
+                File saved as "test.txt" with contents "hey"
+    -}
     fexist :: String -> Int -> String -> IO ()
     fexist f x c = do
       exist <- doesFileExist f
@@ -189,14 +171,12 @@ EXAMPLES: fexist "test.txt" 1 "hey" -> File already exists ->
       else
         writeFile f c
 
-{- 
-decrypt
-
-PURPOSE: The decrypt the given file.
-PRE: The password must be 1-4 ASCII characters. The file needs to be in the same directory
-     as the program.
-POST: The given file decrypted.
-EXAMPLES: decrypt -> "testcompcrypt.txt" -> "testcomp.txt"
+{- decrypt
+   PURPOSE: To decrypt the given file.
+   PRE: The password must be 1-4 ASCII characters. The file needs to be in the same directory
+        as the program and encrypted.
+   POST: The given file decrypted.
+   EXAMPLES: decrypt -> "testcompcrypt.txt" -> "testcomp.txt"
 -}
 decrypt :: IO ()
 decrypt = do
@@ -211,33 +191,28 @@ decrypt = do
     else
       fexist filePath 1 (uncrypt contents pass)
   where
-
-    {- 
-    uncrypt s p
-
-    PURPOSE: To decrypt the given string s with the password p.
-    PRE: True.
-    POST: The string s decrypted with the password p.
-    EXAMPLES: uncrypt "te}F" 1234 = "test"
+    
+    {- uncrypt s p
+       PURPOSE: To decrypt the given string s with the password p.
+       PRE: True.
+       POST: The string s decrypted with the password p.
+       EXAMPLES: uncrypt "te}F" 1234 = "test"
     -}
     uncrypt :: String -> Int -> String
     uncrypt uncryptMe password = intToStr $ (dehash password) $ strToInt uncryptMe
 
-{- 
-fexist f x c
-
-PURPOSE: Checks whether a file with the given name f already exists in the directory,
-         and if so, generates and saves the file with contents c and its new name.
-PRE: True
-POST: The new file with contents c and the given name f if no conflicts of the name 
-      is found within the directory, otherwise the new file is saved with contents c
-      and a new name.
-EXAMPLES: fexist "test.txt" 1 "hey" -> File already exists ->
-          File saved as "test1.txt" with contents "hey"
-
-          fexist "test.txt" 1 "hey" -> File does not exist ->
-          File saved as "test.txt" with contents "hey"
--}
+    {- 
+      fexist f x c
+      PURPOSE: Checks whether a file with the given name f already exists in the directory,
+               and if so, generates and saves the file with contents c and its new name.
+      PRE: True
+      POST: A new file with contents c and the given name f if no naming conflicts occur
+            within the directory, otherwise the new file is saved with contents c and a new name.
+      EXAMPLES: fexist "test.txt" 1 "hey" -> File already exists ->
+                File saved as "test1.txt" with contents "hey"
+                fexist "test.txt" 1 "hey" -> File does not exist ->
+                File saved as "test.txt" with contents "hey"
+    -}
     fexist :: String -> Int -> String -> IO ()
     fexist f x c = do
       exist <- doesFileExist f
@@ -245,15 +220,13 @@ EXAMPLES: fexist "test.txt" 1 "hey" -> File already exists ->
         then fexist ((take (length f - 4) f) ++ (show x) ++ ".txt") (x + 1) c
       else
         writeFile f c
-
-{- 
-makeName name lastname
-
-PURPOSE: To generate a new name of the given name by looking at its current name.
-PRE: True
-POST: A new version of the given name.
-EXAMPLES: makeName "test.txt" Compress = "testcomp.txt"
-          makeName "testcomp.txt" Compress = "error"
+  
+{- makeName name lastname
+   PURPOSE: To generate a new name of the given name by looking at its current name.
+   PRE: True
+   POST: A new version of the given name.
+   EXAMPLES: makeName "test.txt" Compress = "testcomp.txt"
+             makeName "testcomp.txt" Compress = "error"
 -}
 makeName :: String -> Funct -> String
 makeName name lastName
@@ -264,13 +237,12 @@ makeName name lastName
   | otherwise = "error" 
   where
 
-    {- 
-    compressed
-
-    PURPOSE: To check if the string ends with "comp.txt"
-    PRE:
-    POST: True if the string ends with "comp.txt", otherwise False.
-    EXAMPLES:
+    {- compressed
+       PURPOSE: To check if the string ends with "comp.txt"
+       PRE: True
+       POST: True if the string ends with "comp.txt", otherwise False.
+       EXAMPLES: name == "hello.txt" == False
+                 name == "hellocomp.txt" == True
     -}
     compressed :: Bool 
     compressed = (drop (length name - 8) name) == "comp.txt"
@@ -286,37 +258,32 @@ makeName name lastName
     unEncrypted :: Bool
     unEncrypted = (drop (length name - 9) name) /= "crypt.txt"
 
-    {- 
-    newName len
-
-    PURPOSE: To remove len number of characters from the end of the string.
-    PRE:
-    POST: The string with len number of characters removed from the end.
-    EXAMPLES:
+    {- newName len
+       PURPOSE: To remove len number of characters from the end of the string.
+       PRE: True
+       POST: The string with len number of characters removed from the end.
+       EXAMPLES: name == "hello.txt"
+                 newName 5 == "hell"
+                 newName 4 == "hello"
     -}
     newName :: Int -> String
     newName len = take (length name - len) name 
 
 
-{- 
-intToStr a
-
-PURPOSE: To convert a list of integers to its corresponding characters in the ASCII table
-         concatenated into a string.
-PRE: True
-POST: A string of the corresponding characters given from the list of integers.
-EXAMPLES: intToStr [116,101,115,116] = "test"
+{- intToStr a
+   PURPOSE: To convert a list of Ints to its corresponding characters in the ASCII table
+   PRE: True
+   POST: A string of the corresponding characters given from the list of Ints.
+   EXAMPLES: intToStr [116,101,115,116] = "test"
 -}
 intToStr :: [Int] -> String
 intToStr a = map chr a
 
-{- 
-strToInt str
-
-PURPOSE: To convert the characters of a string to its corresponding integers in the ASCII table.
-PRE: True
-POST: A list of the corresponding integers given from the string.
-EXAMPLES: strToInt "test" = [116,101,115,116]
+{- strToInt str
+   PURPOSE: To convert the characters of a string to its corresponding Ints in the ASCII table.
+   PRE: True
+   POST: A list of the corresponding Ints given from the string.
+   EXAMPLES: strToInt "test" = [116,101,115,116]
 -}
 strToInt :: String -> [Int]
 strToInt [] = []
@@ -330,25 +297,24 @@ strToInt (x:xs)
     trio = if [x] == "\\" then asci (take 3 xs) else 1000
     penta = if [x] == "\\" then asci (take 5 xs) else 1000
 
-{- 
-PURPOSE: To generate a password based on the given string.
-PRE: True
-POST: A password consisting of integers based on the given string.
-EXAMPLES: makepswd "test" = 244939252
+{- makepswd pass
+   PURPOSE: To generate a password based on the given string.
+   PRE: True
+   POST: A password consisting of Ints based on the given string.
+   EXAMPLES: makepswd "test" = 244939252
 -}
 makepswd :: String -> Int
 makepswd "" = 0
 makepswd pass = if length pass == 1
                   then head $ strToInt [last pass]
                 else
-
-                    (head $ strToInt [last pass]) + 128 * makepswd (init pass)
-{- 
-PURPOSE: To match ASCII characters to its corresponding integers
-PRE: True
-POST: The integer matched to its ASCII character. 
-EXAMPLES: asci "DEL" = 127
-          asci "test" = 1000
+                  (head $ strToInt [last pass]) + 128 * makepswd (init pass)
+{- asci str
+   PURPOSE: To match ASCII characters to its corresponding Ints
+   PRE: True
+   POST: The Ints matched to its ASCII character. 
+   EXAMPLES: asci "DEL" = 127
+             asci "test" = 1000
 -}
 asci :: String -> Int
 asci "DEL" = 127
