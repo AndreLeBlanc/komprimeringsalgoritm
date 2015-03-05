@@ -1,4 +1,5 @@
 module Comandecrypt where
+import Test.HUnit
 
 {- 	lzcomp position squashMe
 	PURPOSE: lzcomp does the compression for the program.
@@ -229,3 +230,20 @@ four :: [Int] -> [Int]
 four lista
 	| length lista >= 4 = lista
 	| otherwise = four (0:lista)
+
+
+test9 = TestCase (assertEqual "lzcomp," ([116,101,115,116,105,110,103,32,116,104,105,115,32,127,
+				 13,4]) (lzcomp 0 [116,101,115,116,105,110,103,32,116,104,105,115,32,116,101,
+				 115,116]))
+
+test10 = TestCase (assertEqual "lzdecomp," ([116,101,115,116,105,110,103,32,116,104,105,115,32,
+				 116,101,115,116]) (lzdecomp 0 [116,101,115,116,105,110,103,32,116,104,105,115,32,
+				 127,13,4]))
+
+test11 = TestCase (assertEqual "hash," ([23,15,15,56,12,81,91,26]) 
+				 (hash 45345 [23,12,45,23,12,78,120,121]))
+test12 = TestCase (assertEqual "dehash," ([123,123,5,3,124,8,12,12])
+				 (dehash 4534567 [126,15,103,42,126,28,110,51]))
+
+testsComandecrypt = TestList [TestLabel "test9" test9, TestLabel "test10" test10,
+        			TestLabel "test11" test11, TestLabel "test12" test12]
